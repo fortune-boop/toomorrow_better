@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Life & Career Manager — 오늘의 기록</title>
+<style>
+  :root {
+    --paper: #F7F3EA;
+    --ink: #1E2A3A;
+    --ink-soft: #55627A;
+    --rule: #D9D0BC;
+    --amber: #B8863B;
+    --amber-deep: #8F6528;
+    --ok: #4A7A5E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Georgia', 'Nanum Myeongjo', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  header .eyebrow {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+  header h1 {
+    font-size: 26px;
+    margin: 4px 0 0;
+    font-weight: 700;
+  }
+  header .date-today {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  nav.tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 24px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  nav.tabs button {
+    flex: 1;
+    padding: 10px 6px;
+    background: transparent;
+    border: none;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-right: 1px solid var(--rule);
+  }
+  nav.tabs button:last-child { border-right: none; }
+  nav.tabs button.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  section.panel { display: none; }
+  section.panel.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px);} to {opacity:1; transform:none;} }
+
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="number"],
+  .field input[type="url"],
+  .field textarea,
+  .field select {
+    width: 100%;
+    padding: 10px 10px;
+    background: #FFFDF8;
+    border: 1px solid var(--rule);
+    border-bottom: 2px solid var(--ink);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .field textarea { resize: vertical; min-height: 60px; }
+
+  .toggle-row { display: flex; gap: 10px; }
+  .toggle {
+    flex: 1;
+    text-align: center;
+    padding: 12px 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--ink-soft);
+  }
+  .toggle.selected.o { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .toggle.selected.x { background: #A85A46; border-color: #A85A46; color: #fff; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 7px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  .chip.selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+  button.submit {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    background: var(--amber);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  button.submit:active { background: var(--amber-deep); }
+  button.submit:disabled { opacity: 0.5; }
+
+  .status {
+    margin-top: 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    text-align: center;
+    min-height: 18px;
+  }
+  .status.ok { color: var(--ok); }
+  .status.err { color: #A85A46; }
+
+  .config-note {
+    margin-top: 40px;
+    padding: 14px;
+    border: 1px dashed var(--rule);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">AI Life &amp; Career Manager</div>
+    <h1>오늘의 기록</h1>
+    <div class="date-today" id="todayLabel"></div>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="daily" class="active">Daily</button>
+    <button data-tab="global">해외준비</button>
+    <button data-tab="reading">독서/글쓰기</button>
+    <button data-tab="application">지원 추가</button>
+  </nav>
+
+  <!-- Daily -->
+  <section class="panel active" id="panel-daily">
+    <div class="field">
+      <label>날짜</label>
+      <input type="date" id="daily-date" />
+    </div>
+    <div class="field">
+      <label>Deep Thinking 실행</label>
+      <div class="toggle-row" id="daily-dt-toggle">
+        <div class="toggle o" data-val="O">O</div>
+        <div class="toggle x" data-val="X">X</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Deep Thinking 주제</label>
+      <input type="text" id="daily-dt-topic" placeholder="예: 브랜드 전략" />
+    </div>
+    <div class="field">
+      <label>운동</label>
+      <div class="toggle-row" id="daily-ex-toggle">
+        <div class="toggle o" data-val="O">O</div>
+        <div class="toggle x" data-val="X">X</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>컨디션 메모</label>
+      <input type="text" id="daily-condition" placeholder="예: 수면 부족, 피로함" />
+    </div>
+    <div class="field">
+      <label>오늘의 한줄 메모</label>
+      <textarea id="daily-note" placeholder="오늘 미래의 나를 위해 한 행동 한 가지"></textarea>
+    </div>
+    <button class="submit" data-type="daily">기록하기</button>
+    <div class="status" id="status-daily"></div>
+  </section>
+
+  <!-- Global -->
+  <section class="panel" id="panel-global">
+    <div class="field">
+      <label>날짜</label>
+      <input type="date" id="global-date" />
+    </div>
+    <div class="field">
+      <label>항목</label>
+      <select id="global-category">
+        <option>워홀</option>
+        <option>해외채용</option>
+        <option>비자</option>
+        <option>국가조사</option>
+        <option>해외이력서</option>
+        <option>영어인터뷰</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>내용</label>
+      <textarea id="global-content" placeholder="무엇을 조사/준비했는지"></textarea>
+    </div>
+    <div class="field">
+      <label>진행상태</label>
+      <input type="text" id="global-status" placeholder="예: 조사 중, 서류 준비, 완료" />
+    </div>
+    <button class="submit" data-type="global">기록하기</button>
+    <div class="status" id="status-global"></div>
+  </section>
+
+  <!-- Reading -->
+  <section class="panel" id="panel-reading">
+    <div class="field">
+      <label>제목/주제</label>
+      <input type="text" id="reading-title" placeholder="책 제목 또는 글 제목" />
+    </div>
+    <div class="field">
+      <label>유형</label>
+      <div class="chips" id="reading-type-chips">
+        <div class="chip" data-val="독서">독서</div>
+        <div class="chip" data-val="논술">논술</div>
+        <div class="chip" data-val="전략문서">전략문서</div>
+        <div class="chip" data-val="에세이">에세이</div>
+        <div class="chip" data-val="브랜드분석">브랜드분석</div>
+        <div class="chip" data-val="사업기획">사업기획</div>
+        <div class="chip" data-val="칼럼">칼럼</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>날짜</label>
+      <input type="date" id="reading-date" />
+    </div>
+    <div class="field">
+      <label>요약</label>
+      <textarea id="reading-summary"></textarea>
+    </div>
+    <div class="field">
+      <label>비판/내의견</label>
+      <textarea id="reading-critique"></textarea>
+    </div>
+    <div class="field">
+      <label>소요시간(분, 선택)</label>
+      <input type="number" id="reading-duration" />
+    </div>
+    <button class="submit" data-type="reading">기록하기</button>
+    <div class="status" id="status-reading"></div>
+  </section>
+
+  <!-- Application -->
+  <section class="panel" id="panel-application">
+    <div class="field">
+      <label>공고명</label>
+      <input type="text" id="app-title" placeholder="예: 카카오 마케팅 신입" />
+    </div>
+    <div class="field">
+      <label>상태</label>
+      <select id="app-status">
+        <option>발표 전</option>
+        <option>서류합격</option>
+        <option>서류탈락</option>
+        <option>인적성 합격</option>
+        <option>인적성탈락</option>
+        <option>면접합격</option>
+        <option>면접탈락</option>
+        <option>최종합격</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>공고링크</label>
+      <input type="url" id="app-link" placeholder="https://..." />
+    </div>
+    <div class="field">
+      <label>직무 (복수 선택 가능)</label>
+      <div class="chips" id="app-job-chips">
+        <div class="chip" data-val="마케팅">마케팅</div>
+        <div class="chip" data-val="사무직">사무직</div>
+        <div class="chip" data-val="공간지원">공간지원</div>
+        <div class="chip" data-val="상품기획">상품기획</div>
+        <div class="chip" data-val="아르바이트">아르바이트</div>
+        <div class="chip" data-val="대외활동">대외활동</div>
+        <div class="chip" data-val="해외영업">해외영업</div>
+        <div class="chip" data-val="해외마케팅">해외마케팅</div>
+        <div class="chip" data-val="PR">PR</div>
+        <div class="chip" data-val="번역/통역">번역/통역</div>
+        <div class="chip" data-val="부수입">부수입</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>지원 날짜</label>
+      <input type="date" id="app-date" />
+    </div>
+    <div class="field">
+      <label>특이사항</label>
+      <textarea id="app-note"></textarea>
+    </div>
+    <button class="submit" data-type="application">기록하기</button>
+    <div class="status" id="status-application"></div>
+  </section>
+
+  <div class="config-note">
+    ⚠ APPS_SCRIPT_URL이 설정되지 않으면 기록이 저장되지 않습니다.
+    이 파일 상단 스크립트의 APPS_SCRIPT_URL 값을 배포된 Apps Script 웹앱 URL로 교체하세요.
+  </div>
+</div>
+
+<script>
+  // ▼▼▼ Apps Script 배포 후 이 URL을 교체하세요 ▼▼▼
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZSiwUmqPskrDRiMyfE-bQo0-4wVuDb01yXJYGW1tYwtnWLHuJivYHRttPL-i5QKGmrQ/exec";
+  // ▲▲▲ ------------------------------------- ▲▲▲
+
+  document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('ko-KR', {
+    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+  });
+
+  // 기본 날짜값 오늘로 세팅
+  const todayStr = new Date().toISOString().slice(0, 10);
+  ['daily-date', 'global-date', 'reading-date', 'app-date'].forEach(id => {
+    document.getElementById(id).value = todayStr;
+  });
+
+  // 탭 전환
+  document.querySelectorAll('nav.tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('section.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // O/X 토글
+  function setupToggle(containerId) {
+    const container = document.getElementById(containerId);
+    container.querySelectorAll('.toggle').forEach(t => {
+      t.addEventListener('click', () => {
+        container.querySelectorAll('.toggle').forEach(x => x.classList.remove('selected'));
+        t.classList.add('selected');
+      });
+    });
+  }
+  setupToggle('daily-dt-toggle');
+  setupToggle('daily-ex-toggle');
+
+  function getToggleVal(containerId) {
+    const sel = document.querySelector('#' + containerId + ' .toggle.selected');
+    return sel ? sel.dataset.val : 'X';
+  }
+
+  // 단일선택 칩 (독서 유형)
+  document.querySelectorAll('#reading-type-chips .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('#reading-type-chips .chip').forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+    });
+  });
+
+  // 다중선택 칩 (직무)
+  document.querySelectorAll('#app-job-chips .chip').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('selected'));
+  });
+
+  function collectPayload(type) {
+    if (type === 'daily') {
+      return {
+        type: 'daily',
+        date: document.getElementById('daily-date').value,
+        deepThinkingDone: getToggleVal('daily-dt-toggle'),
+        deepThinkingTopic: document.getElementById('daily-dt-topic').value,
+        exercise: getToggleVal('daily-ex-toggle'),
+        condition: document.getElementById('daily-condition').value,
+        note: document.getElementById('daily-note').value,
+      };
+    }
+    if (type === 'global') {
+      return {
+        type: 'global',
+        date: document.getElementById('global-date').value,
+        category: document.getElementById('global-category').value,
+        content: document.getElementById('global-content').value,
+        status: document.getElementById('global-status').value,
+      };
+    }
+    if (type === 'reading') {
+      const typeChip = document.querySelector('#reading-type-chips .chip.selected');
+      return {
+        type: 'reading',
+        title: document.getElementById('reading-title').value,
+        category: typeChip ? typeChip.dataset.val : '독서',
+        date: document.getElementById('reading-date').value,
+        summary: document.getElementById('reading-summary').value,
+        critique: document.getElementById('reading-critique').value,
+        duration: document.getElementById('reading-duration').value,
+      };
+    }
+    if (type === 'application') {
+      const jobChips = Array.from(document.querySelectorAll('#app-job-chips .chip.selected')).map(c => c.dataset.val);
+      return {
+        type: 'application',
+        companyRole: document.getElementById('app-title').value,
+        status: document.getElementById('app-status').value,
+        link: document.getElementById('app-link').value,
+        jobTypes: jobChips,
+        date: document.getElementById('app-date').value,
+        note: document.getElementById('app-note').value,
+      };
+    }
+  }
+
+  document.querySelectorAll('button.submit').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const type = btn.dataset.type;
+      const statusEl = document.getElementById('status-' + type);
+      const payload = collectPayload(type);
+
+      if (APPS_SCRIPT_URL.includes('PASTE_YOUR')) {
+        statusEl.textContent = '⚠ APPS_SCRIPT_URL이 아직 설정되지 않았어요.';
+        statusEl.className = 'status err';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = '기록하는 중...';
+      statusEl.className = 'status';
+
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' }, // Apps Script는 text/plain으로 보내야 CORS 프리플라이트 없이 동작
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          statusEl.textContent = '✓ 기록 완료';
+          statusEl.className = 'status ok';
+        } else {
+          statusEl.textContent = '✗ 실패: ' + data.error;
+          statusEl.className = 'status err';
+        }
+      } catch (err) {
+        statusEl.textContent = '✗ 네트워크 오류: ' + err.message;
+        statusEl.className = 'status err';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+</script>
+</body>
+</html>
