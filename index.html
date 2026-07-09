@@ -4,15 +4,16 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AI Life & Career Manager — 오늘의 기록</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='40' rx='14' ry='19' fill='%237FCBAA'/%3E%3Ccircle cx='20' cy='14' r='6' fill='%237FCBAA'/%3E%3Ccircle cx='32' cy='9' r='6.5' fill='%237FCBAA'/%3E%3Ccircle cx='44' cy='14' r='6' fill='%237FCBAA'/%3E%3Ccircle cx='49' cy='24' r='5' fill='%237FCBAA'/%3E%3C/svg%3E">
 <style>
   :root {
     --paper: #F2F8F5;
     --ink: #1E2A3A;
     --ink-soft: #55627A;
-    --rule: #C7DED2;
-    --jade: #4FAE84;
-    --jade-deep: #367B5C;
-    --ok: #4A7A5E;
+    --rule: #D3E8DE;
+    --jade: #A9E2C6;
+    --jade-mid: #5FAE8D;
+    --jade-text: #2F6B54;
   }
   * { box-sizing: border-box; }
   body {
@@ -50,6 +51,22 @@
     color: var(--ink-soft);
     margin-top: 6px;
   }
+  header .my-goal {
+    margin-top: 14px;
+    padding: 14px 4px;
+    border-top: 2px solid var(--jade-mid);
+    border-bottom: 2px solid var(--jade-mid);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.7;
+    text-align: center;
+  }
+  header .my-goal .line2 {
+    display: block;
+    margin-top: 4px;
+    color: var(--jade-text);
+  }
   nav.tabs {
     display: flex;
     gap: 2px;
@@ -72,7 +89,7 @@
   }
   nav.tabs button:last-child { border-right: none; }
   nav.tabs button.active {
-    background: var(--jade-deep);
+    background: var(--jade-mid);
     color: #fff;
   }
   section.panel { display: none; }
@@ -99,7 +116,7 @@
     padding: 10px 10px;
     background: #FFFFFF;
     border: 1px solid var(--rule);
-    border-bottom: 2px solid var(--jade-deep);
+    border-bottom: 2px solid var(--jade-mid);
     border-radius: 4px;
     font-family: inherit;
     font-size: 15px;
@@ -120,7 +137,7 @@
     user-select: none;
     color: var(--ink-soft);
   }
-  .toggle.selected.o { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .toggle.selected.o { background: var(--jade-mid); border-color: var(--jade-mid); color: #fff; }
   .toggle.selected.x { background: #A85A46; border-color: #A85A46; color: #fff; }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -132,13 +149,13 @@
     cursor: pointer;
     color: var(--ink-soft);
   }
-  .chip.selected { background: var(--jade-deep); border-color: var(--jade-deep); color: #fff; }
+  .chip.selected { background: var(--jade-mid); border-color: var(--jade-mid); color: #fff; }
 
   button.submit {
     width: 100%;
     padding: 14px;
     margin-top: 8px;
-    background: var(--jade);
+    background: var(--jade-mid);
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -147,7 +164,7 @@
     letter-spacing: 0.04em;
     cursor: pointer;
   }
-  button.submit:active { background: var(--jade-deep); }
+  button.submit:active { background: var(--jade-text); }
   button.submit:disabled { opacity: 0.5; }
 
   .status {
@@ -157,19 +174,8 @@
     text-align: center;
     min-height: 18px;
   }
-  .status.ok { color: var(--jade-deep); }
+  .status.ok { color: var(--jade-text); }
   .status.err { color: #A85A46; }
-
-  .config-note {
-    margin-top: 40px;
-    padding: 14px;
-    border: 1px dashed var(--rule);
-    border-radius: 6px;
-    font-size: 12px;
-    color: var(--ink-soft);
-    font-family: 'Courier New', monospace;
-    line-height: 1.6;
-  }
 
   /* 성공 모달 */
   .celebrate-overlay {
@@ -199,7 +205,7 @@
     font-size: 13px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--jade-deep);
+    color: var(--jade-text);
     margin: 0 0 10px;
   }
   .celebrate-msg {
@@ -221,7 +227,7 @@
     margin-top: 16px;
     width: 100%;
     padding: 11px;
-    background: var(--jade-deep);
+    background: var(--jade-mid);
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -238,6 +244,10 @@
     <div class="eyebrow">AI Life &amp; Career Manager</div>
     <h1>오늘의 기록</h1>
     <div class="date-today" id="todayLabel"></div>
+    <div class="my-goal">
+      나는 자유롭고, 유능하고, 깊이 사고하는 사람이 될 것이다.
+      <span class="line2">하고자 한다면 즉시 실행할 수 있는 사람이 될 것이다.</span>
+    </div>
   </header>
 
   <nav class="tabs">
@@ -401,10 +411,7 @@
     <div class="status" id="status-application"></div>
   </section>
 
-  <div class="config-note">
-    ⚠ APPS_SCRIPT_URL이 설정되지 않으면 기록이 저장되지 않습니다.
-    이 파일 하단 스크립트의 APPS_SCRIPT_URL 값을 배포된 Apps Script 웹앱 URL로 교체하세요.
-  </div>
+
 </div>
 
 <!-- 기록 완료 축하 모달 -->
@@ -431,11 +438,27 @@
     application: '자유를 향한 지원서, 하나 더 쌓였어요.',
   };
 
-  document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('ko-KR', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-  });
+  // 새벽 2시 이전은 "전날"로 카운트하는 기준일 계산 (로컬 시간 기준)
+  function getEffectiveDateStr() {
+    const now = new Date();
+    const effective = new Date(now.getTime());
+    if (now.getHours() < 2) {
+      effective.setDate(effective.getDate() - 1);
+    }
+    const y = effective.getFullYear();
+    const m = String(effective.getMonth() + 1).padStart(2, '0');
+    const d = String(effective.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getEffectiveDateStr();
+  const isPastMidnightBeforeCutoff = new Date().getHours() < 2;
+
+  document.getElementById('todayLabel').textContent =
+    new Date(todayStr + 'T12:00:00').toLocaleDateString('ko-KR', {
+      year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+    }) + (isPastMidnightBeforeCutoff ? ' (새벽 2시 이전 · 전날로 기록)' : '');
+
   ['daily-date', 'global-date', 'reading-date', 'app-date'].forEach(id => {
     document.getElementById(id).value = todayStr;
   });
