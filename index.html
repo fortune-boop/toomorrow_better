@@ -6,12 +6,12 @@
 <title>AI Life & Career Manager — 오늘의 기록</title>
 <style>
   :root {
-    --paper: #F7F3EA;
+    --paper: #F2F8F5;
     --ink: #1E2A3A;
     --ink-soft: #55627A;
-    --rule: #D9D0BC;
-    --amber: #B8863B;
-    --amber-deep: #8F6528;
+    --rule: #C7DED2;
+    --jade: #4FAE84;
+    --jade-deep: #367B5C;
     --ok: #4A7A5E;
   }
   * { box-sizing: border-box; }
@@ -72,8 +72,8 @@
   }
   nav.tabs button:last-child { border-right: none; }
   nav.tabs button.active {
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--jade-deep);
+    color: #fff;
   }
   section.panel { display: none; }
   section.panel.active { display: block; animation: fade .25s ease; }
@@ -97,9 +97,9 @@
   .field select {
     width: 100%;
     padding: 10px 10px;
-    background: #FFFDF8;
+    background: #FFFFFF;
     border: 1px solid var(--rule);
-    border-bottom: 2px solid var(--ink);
+    border-bottom: 2px solid var(--jade-deep);
     border-radius: 4px;
     font-family: inherit;
     font-size: 15px;
@@ -132,13 +132,13 @@
     cursor: pointer;
     color: var(--ink-soft);
   }
-  .chip.selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .chip.selected { background: var(--jade-deep); border-color: var(--jade-deep); color: #fff; }
 
   button.submit {
     width: 100%;
     padding: 14px;
     margin-top: 8px;
-    background: var(--amber);
+    background: var(--jade);
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -147,7 +147,7 @@
     letter-spacing: 0.04em;
     cursor: pointer;
   }
-  button.submit:active { background: var(--amber-deep); }
+  button.submit:active { background: var(--jade-deep); }
   button.submit:disabled { opacity: 0.5; }
 
   .status {
@@ -157,7 +157,7 @@
     text-align: center;
     min-height: 18px;
   }
-  .status.ok { color: var(--ok); }
+  .status.ok { color: var(--jade-deep); }
   .status.err { color: #A85A46; }
 
   .config-note {
@@ -169,6 +169,66 @@
     color: var(--ink-soft);
     font-family: 'Courier New', monospace;
     line-height: 1.6;
+  }
+
+  /* 성공 모달 */
+  .celebrate-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 42, 58, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .celebrate-overlay.show { display: flex; animation: overlayFade .2s ease; }
+  @keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
+  .celebrate-card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 28px 24px 22px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  }
+  .celebrate-title {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--jade-deep);
+    margin: 0 0 10px;
+  }
+  .celebrate-msg {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .celebrate-mission {
+    padding: 12px 14px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    font-family: 'Courier New', monospace;
+  }
+  .celebrate-close {
+    margin-top: 16px;
+    width: 100%;
+    padding: 11px;
+    background: var(--jade-deep);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
   }
 </style>
 </head>
@@ -343,7 +403,19 @@
 
   <div class="config-note">
     ⚠ APPS_SCRIPT_URL이 설정되지 않으면 기록이 저장되지 않습니다.
-    이 파일 상단 스크립트의 APPS_SCRIPT_URL 값을 배포된 Apps Script 웹앱 URL로 교체하세요.
+    이 파일 하단 스크립트의 APPS_SCRIPT_URL 값을 배포된 Apps Script 웹앱 URL로 교체하세요.
+  </div>
+</div>
+
+<!-- 기록 완료 축하 모달 -->
+<div class="celebrate-overlay" id="celebrateOverlay">
+  <div class="celebrate-card">
+    <div class="celebrate-title">RECORD SAVED</div>
+    <div class="celebrate-msg" id="celebrateMsg">기록이 저장됐어요.</div>
+    <div class="celebrate-mission">
+      자유롭고, 유능하고, 깊이 사고하는 사람 —<br>그 목표에 오늘도 한 걸음 더 가까워졌습니다.
+    </div>
+    <button class="celebrate-close" id="celebrateClose">계속하기</button>
   </div>
 </div>
 
@@ -352,17 +424,22 @@
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyn9Sb5Cjd-t-tz0JBhkW3H8btpjnKwpOQo9z5vage3MasftQxdyDUFvXK1I8Os4vskBw/exec";
   // ▲▲▲ ------------------------------------- ▲▲▲
 
+  const CELEBRATE_CONTENT = {
+    daily: '오늘의 사고력과 건강을 챙겼어요.',
+    global: '해외로 가는 문에 한 걸음 더 가까워졌어요.',
+    reading: '생각이 한 뼘 더 자라났어요.',
+    application: '자유를 향한 지원서, 하나 더 쌓였어요.',
+  };
+
   document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
   });
 
-  // 기본 날짜값 오늘로 세팅
   const todayStr = new Date().toISOString().slice(0, 10);
   ['daily-date', 'global-date', 'reading-date', 'app-date'].forEach(id => {
     document.getElementById(id).value = todayStr;
   });
 
-  // 탭 전환
   document.querySelectorAll('nav.tabs button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
@@ -372,7 +449,6 @@
     });
   });
 
-  // O/X 토글
   function setupToggle(containerId) {
     const container = document.getElementById(containerId);
     container.querySelectorAll('.toggle').forEach(t => {
@@ -390,7 +466,6 @@
     return sel ? sel.dataset.val : 'X';
   }
 
-  // 단일선택 칩 (독서 유형)
   document.querySelectorAll('#reading-type-chips .chip').forEach(c => {
     c.addEventListener('click', () => {
       document.querySelectorAll('#reading-type-chips .chip').forEach(x => x.classList.remove('selected'));
@@ -398,7 +473,6 @@
     });
   });
 
-  // 다중선택 칩 (직무)
   document.querySelectorAll('#app-job-chips .chip').forEach(c => {
     c.addEventListener('click', () => c.classList.toggle('selected'));
   });
@@ -450,6 +524,19 @@
     }
   }
 
+  function showCelebration(type) {
+    document.getElementById('celebrateMsg').textContent = CELEBRATE_CONTENT[type] || '기록이 저장됐어요.';
+    document.getElementById('celebrateOverlay').classList.add('show');
+  }
+  document.getElementById('celebrateClose').addEventListener('click', () => {
+    document.getElementById('celebrateOverlay').classList.remove('show');
+  });
+  document.getElementById('celebrateOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'celebrateOverlay') {
+      document.getElementById('celebrateOverlay').classList.remove('show');
+    }
+  });
+
   document.querySelectorAll('button.submit').forEach(btn => {
     btn.addEventListener('click', async () => {
       const type = btn.dataset.type;
@@ -469,13 +556,14 @@
       try {
         const res = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' }, // Apps Script는 text/plain으로 보내야 CORS 프리플라이트 없이 동작
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.ok) {
           statusEl.textContent = '✓ 기록 완료';
           statusEl.className = 'status ok';
+          showCelebration(type);
         } else {
           statusEl.textContent = '✗ 실패: ' + data.error;
           statusEl.className = 'status err';
